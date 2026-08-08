@@ -1370,6 +1370,41 @@ address { font-style: normal; }
   border: 1px solid var(--mid-gray);
 }
 
+/* 네이버 폼 iframe 래퍼 */
+.naver-form-wrap {
+  flex: 1;
+  min-width: 0;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--mid-gray);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.naver-form-wrap iframe {
+  width: 100%;
+  height: 620px;
+  border: none;
+  display: block;
+}
+
+.naver-form-fallback {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--dark-gray);
+  padding: 0.75rem 1rem;
+  background: var(--light-gray);
+  border-top: 1px solid var(--mid-gray);
+}
+
+.naver-form-fallback a {
+  color: var(--brand-blue);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -1504,6 +1539,14 @@ footer {
   background: var(--brand-blue);
   color: var(--white);
   transform: translateY(-2px);
+}
+
+/* 네이버 SVG 아이콘 크기 맞춤 */
+.footer-social a svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  display: block;
 }
 
 .footer-nav h3,
@@ -1709,6 +1752,7 @@ footer {
   .hero-headline { font-size: 2.5rem; }
   .coming-soon-card { padding: 2.5rem 1.75rem; }
   .contact-form  { padding: 1.75rem; }
+  .naver-form-wrap iframe { height: 520px; }
 
   .footer-bottom {
     flex-direction: column;

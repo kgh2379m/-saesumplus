@@ -167,28 +167,16 @@ function initContactForm() {
     setLoading(true);
 
     try {
-      const res = await fetch('tables/inquiries', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          phone,
-          service: service || '미선택',
-          message: message || '내용 없음',
-          submitted_at: new Date().toISOString(),
-        }),
-      });
-
-      if (res.ok || res.status === 201) {
-        form.reset();
-        showMsg('✅ 문의가 접수되었습니다. 빠르게 연락드리겠습니다.', 'success');
-      } else {
-        throw new Error('서버 오류');
-      }
-    } catch {
-      // 오프라인 / 테스트 환경에서는 성공 메시지
+      // 카카오톡 채널로 문의 연결
+      const kakaoUrl = 'http://pf.kakao.com/_xdmexdX/chat';
       form.reset();
-      showMsg('✅ 문의가 접수되었습니다. 빠르게 연락드리겠습니다.', 'success');
+      showMsg('✅ 카카오톡 채널로 연결합니다. 잠시 후 채팅창이 열립니다.', 'success');
+      setTimeout(() => {
+        window.open(kakaoUrl, '_blank');
+      }, 800);
+    } catch {
+      form.reset();
+      showMsg('✅ 카카오톡 채널로 연결합니다. 잠시 후 채팅창이 열립니다.', 'success');
     } finally {
       setLoading(false);
     }
