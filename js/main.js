@@ -335,3 +335,45 @@ async function ensureInquiriesTable() {
 }
 
 document.addEventListener('DOMContentLoaded', ensureInquiriesTable);
+
+/* ══════════════════════════════════════
+   13. 가격표 팝업 모달
+══════════════════════════════════════ */
+function initPriceModal() {
+  const modal    = document.getElementById('priceModal');
+  const openBtn  = document.getElementById('priceBtn');
+  const closeBtn = document.getElementById('priceModalClose');
+  const backdrop = document.getElementById('priceModalBackdrop');
+  const contactBtn = document.getElementById('priceContactBtn');
+  if (!modal || !openBtn) return;
+
+  function openModal() {
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+    openBtn.focus();
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+
+  // 예약 문의 버튼 클릭 시 모달 닫고 contact 섹션으로 이동
+  if (contactBtn) {
+    contactBtn.addEventListener('click', () => {
+      closeModal();
+    });
+  }
+
+  // ESC 키로 닫기
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initPriceModal);
