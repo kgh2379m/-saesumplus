@@ -838,6 +838,36 @@
     </div>
   </div>
 
+  <!-- ========== 대표 인사 팝업 ========== -->
+  <div id="ceoModal" class="ceo-modal" role="dialog" aria-modal="true" aria-labelledby="ceoModalTitle" hidden>
+    <div class="ceo-modal-box">
+
+      <!-- 닫기 버튼 -->
+      <button class="ceo-modal-close" id="ceoModalClose" aria-label="닫기">&times;</button>
+
+      <!-- 하나의 카드: 프로필 워터마크 배경 + 손편지 이미지 -->
+      <div class="ceo-card">
+        <!-- 프로필 워터마크 배경 -->
+        <div class="ceo-card-watermark" aria-hidden="true">
+          <img src="images/ceo-profile.jpg" alt="" />
+        </div>
+        <!-- 손편지 이미지 (전체) -->
+        <img src="images/ceo-letter.jpg" alt="새숨더함 대표 공경환 손편지" class="ceo-card-letter" id="ceoModalTitle" />
+      </div>
+
+      <!-- 하단 -->
+      <div class="ceo-modal-footer">
+        <label class="ceo-no-show">
+          <input type="checkbox" id="ceoNoShow" />
+          오늘 하루 보지 않기
+        </label>
+        <button class="btn btn-primary ceo-footer-btn" id="ceoModalOk">확인</button>
+      </div>
+
+    </div>
+  </div>
+  <!-- ========== /대표 인사 팝업 ========== -->
+
   <script src="js/main.js"></script>
 
   <!-- 채널톡 라이브 채팅 위젯 -->

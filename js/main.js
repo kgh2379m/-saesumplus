@@ -377,3 +377,42 @@ function initPriceModal() {
 }
 
 document.addEventListener('DOMContentLoaded', initPriceModal);
+
+/* ══════════════════════════════════════
+   14. 대표 인사 팝업 (홍보 팝업 방식)
+══════════════════════════════════════ */
+function initCeoModal() {
+  const modal     = document.getElementById('ceoModal');
+  const closeBtn  = document.getElementById('ceoModalClose');
+  const okBtn     = document.getElementById('ceoModalOk');
+  const noShowChk = document.getElementById('ceoNoShow');
+
+  if (!modal) return;
+
+  // 오늘 하루 보지 않기 체크
+  const TODAY = new Date().toDateString();
+  if (localStorage.getItem('ceoModalHide') === TODAY) return;
+
+  // 1.5초 딜레이 — 홈페이지 완전 진입 후 자연스럽게 등장
+  setTimeout(() => {
+    modal.hidden = false;
+    // body 스크롤 차단 없음 — 홍보 팝업 방식
+  }, 1500);
+
+  // 닫기
+  function closeModal() {
+    if (noShowChk && noShowChk.checked) {
+      localStorage.setItem('ceoModalHide', TODAY);
+    }
+    modal.hidden = true;
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  okBtn.addEventListener('click', closeModal);
+  // ESC 키로도 닫기
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initCeoModal);
