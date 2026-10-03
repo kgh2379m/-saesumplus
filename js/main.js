@@ -379,7 +379,7 @@ function initPriceModal() {
 document.addEventListener('DOMContentLoaded', initPriceModal);
 
 /* ══════════════════════════════════════
-   14. 대표 인사 팝업 (홍보 팝업 방식)
+   14. 대표 인사 팝업 (탭: 손편지 + CM송)
 ══════════════════════════════════════ */
 function initCeoModal() {
   const modal     = document.getElementById('ceoModal');
@@ -393,6 +393,78 @@ function initCeoModal() {
   const TODAY = new Date().toDateString();
   if (localStorage.getItem('ceoModalHide') === TODAY) return;
 
+  // ── 탭 전환 로직 ──
+  const tabs   = modal.querySelectorAll('.ceo-tab');
+  const panels = modal.querySelectorAll('.ceo-tab-panel');
+  const ytFrame = document.getElementById('ceoYoutubeFrame');
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.getAttribute('aria-controls');
+
+      // 탭 활성화
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+
+      // 패널 전환
+      panels.forEach(panel => {
+        if (panel.id === targetId) {
+          panel.hidden = false;
+          panel.classList.add('active');
+        } else {
+          panel.hidden = true;
+          panel.classList.remove('active');
+        }
+      });
+
+      // CM송 탭을 떠날 때 유튜브 영상 일시정지
+      // (src 유지 — src를 바꾸면 재진입 시 다시 로드됨)
+      if (targetId !== 'panelCm' && ytFrame) {
+        // contentWindow postMessage로 일시정지
+        try {
+          ytFrame.contentWindow.postMessage(
+            '{"event":"command","func":"pauseVideo","args":""}',
+            '*'
+          );
+        } catch (_) { /* cross-origin 차단 — 무시 */ }
+      }
+    });
+  });
+
+  // ── iframe 오류(Error 153 등) 감지 → fallback 표시 ──
+  if (ytFrame) {
+    ytFrame.addEventListener('error', showCmFallback);
+
+    // YouTube가 차단된 환경에서는 load 후에도 빈 페이지가 뜸
+    // → 3초 뒤 contentWindow 접근 시도로 추가 판별
+    ytFrame.addEventListener('load', () => {
+      setTimeout(() => {
+        try {
+          // 정상이면 접근 불가(cross-origin) → catch로 빠짐 = 정상
+          // 차단이면 about:blank 등 접근 가능하거나 오류 페이지
+          const doc = ytFrame.contentDocument || ytFrame.contentWindow.document;
+          // about:blank 또는 오류 페이지가 열린 경우
+          if (doc && (doc.URL === 'about:blank' || doc.body.innerText.includes('153'))) {
+            showCmFallback();
+          }
+        } catch (_) {
+          // cross-origin 차단 = iframe 정상 로드됨 → 아무 것도 안 함
+        }
+      }, 2000);
+    });
+  }
+
+  function showCmFallback() {
+    const wrap     = document.getElementById('ceoVideoWrap');
+    const fallback = document.getElementById('ceoCmFallback');
+    if (wrap)     wrap.classList.add('error');
+    if (fallback) fallback.hidden = false;
+  }
+
   // 1.5초 딜레이 — 홈페이지 완전 진입 후 자연스럽게 등장
   setTimeout(() => {
     modal.hidden = false;
@@ -404,11 +476,21 @@ function initCeoModal() {
     if (noShowChk && noShowChk.checked) {
       localStorage.setItem('ceoModalHide', TODAY);
     }
+    // CM송 탭 재생 중이면 일시정지
+    if (ytFrame) {
+      try {
+        ytFrame.contentWindow.postMessage(
+          '{"event":"command","func":"pauseVideo","args":""}',
+          '*'
+        );
+      } catch (_) { /* 무시 */ }
+    }
     modal.hidden = true;
   }
 
   closeBtn.addEventListener('click', closeModal);
   okBtn.addEventListener('click', closeModal);
+
   // ESC 키로도 닫기
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !modal.hidden) closeModal();

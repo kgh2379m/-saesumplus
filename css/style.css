@@ -2134,7 +2134,7 @@ footer {
 }
 
 /* ══════════════════════════════════════
-   대표 인사 팝업 (홍보 팝업 방식 — 좌측 하단 고정)
+   대표 인사 팝업 (탭: 손편지 + CM송 — 좌측 하단 고정)
 ══════════════════════════════════════ */
 
 /* 전체 오버레이 없음 — 좌측 하단 고정 */
@@ -2157,7 +2157,7 @@ footer {
   background: #faf9f7;
   border-radius: 16px;
   width: 100%;
-  height: 75vh;       /* 화면 세로의 75% 고정 — 내부 스크롤 */
+  height: 75vh;       /* 화면 세로의 75% 고정 */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -2174,7 +2174,7 @@ footer {
   position: absolute;
   top: 0.6rem;
   right: 0.6rem;
-  z-index: 20;
+  z-index: 30;
   width: 28px; height: 28px;
   border-radius: 50%;
   border: none;
@@ -2190,7 +2190,74 @@ footer {
 }
 .ceo-modal-close:hover { background: rgba(0,0,0,0.42); }
 
-/* ── 카드 영역 (스크롤 가능) ── */
+/* ── 탭 헤더 ── */
+.ceo-tabs {
+  display: flex;
+  flex-shrink: 0;
+  background: #f0ede8;
+  border-bottom: 2px solid #e0ddd7;
+  padding: 0 0.5rem;
+  gap: 0;
+}
+
+.ceo-tab {
+  flex: 1;
+  padding: 0.6rem 0.5rem;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gray);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+.ceo-tab:hover {
+  color: var(--charcoal);
+  background: rgba(0,0,0,0.04);
+}
+.ceo-tab.active {
+  color: var(--brand-blue);
+  border-bottom-color: var(--brand-blue);
+  background: transparent;
+}
+
+/* CM송 탭 YouTube 아이콘 */
+.ceo-tab-yt-icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: #FF0000;          /* 기본: YouTube 빨강 */
+  transition: color 0.2s;
+}
+/* 탭이 비활성일 때: 약간 연하게 */
+.ceo-tab:not(.active) .ceo-tab-yt-icon {
+  color: rgba(255, 0, 0, 0.55);
+}
+/* 탭 활성/호버 시: 선명한 빨강 */
+.ceo-tab.active .ceo-tab-yt-icon,
+.ceo-tab:hover .ceo-tab-yt-icon {
+  color: #FF0000;
+}
+
+/* ── 탭 패널 ── */
+.ceo-tab-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.ceo-tab-panel[hidden] { display: none; }
+
+/* 손편지 패널 — 카드 영역 (스크롤 가능) */
 .ceo-card {
   position: relative;
   flex: 1;
@@ -2206,30 +2273,125 @@ footer {
   inset: 0;
   z-index: 1;
   overflow: hidden;
-  border-radius: 0; /* 상위 박스가 처리 */
 }
 .ceo-card-watermark img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  opacity: 0.08;        /* 매우 연하게 — 글씨 시인성 보장 */
+  opacity: 0.08;
   filter: grayscale(40%);
   display: block;
 }
 
-/* 손편지 이미지 — 워터마크 위에 표시 */
+/* 손편지 이미지 */
 .ceo-card-letter {
   position: relative;
   z-index: 2;
   display: block;
   width: 100%;
   height: auto;
-  /* 편지지 배경과 자연스럽게 합성 */
   mix-blend-mode: multiply;
 }
 
-/* 하단 푸터 */
+/* ── CM송 패널 ── */
+.ceo-cm-wrap {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #1a1f2e 0%, #0f1520 100%);
+}
+.ceo-cm-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.2rem 1rem 1rem;
+  width: 100%;
+}
+
+.ceo-cm-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+.ceo-cm-desc {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  margin: 0;
+}
+
+/* YouTube 영상 래퍼 — Shorts 9:16 비율 */
+.ceo-cm-video-wrap {
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 9 / 16;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  background: #000;
+  flex-shrink: 0;
+}
+.ceo-cm-video-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* iframe 오류 fallback */
+.ceo-cm-fallback {
+  width: 100%;
+  max-width: 240px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 1.2rem 1rem;
+  text-align: center;
+}
+.ceo-cm-fallback-msg {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 오류 시: 비디오 래퍼 숨김 */
+.ceo-cm-video-wrap.error {
+  display: none;
+}
+
+/* YouTube 링크 버튼 */
+.ceo-cm-yt-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  background: #FF0000;
+  color: #fff;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+  letter-spacing: 0.02em;
+}
+.ceo-cm-yt-link svg {
+  width: 16px; height: 16px;
+  flex-shrink: 0;
+}
+.ceo-cm-yt-link:hover {
+  background: #cc0000;
+  transform: translateY(-1px);
+}
+
+/* ── 하단 푸터 ── */
 .ceo-modal-footer {
   display: flex;
   align-items: center;
@@ -2258,23 +2420,34 @@ footer {
   font-size: 0.85rem;
 }
 
-/* 반응형 — 모바일: 화면 하단 좌우 꽉 차게 */
+/* ── 반응형 — 모바일: 화면 하단 좌우 꽉 차게 ── */
 @media (max-width: 768px) {
   .ceo-modal {
-    bottom: 0;
+    /* 채널톡 플로팅 버튼(약 90px) + 충분한 여백으로 하단 띄움 */
+    bottom: 90px;
     left: 0;
     right: 0;
     top: auto;
     width: 100%;
     min-width: unset;
     max-width: unset;
-    padding: 0 0.5rem 0.5rem;
+    padding: 0 0.5rem 0;
+    /* 채널톡 기본 z-index(9999)보다 높게 */
+    z-index: 10001;
   }
   .ceo-modal-box {
-    border-radius: 16px 16px 10px 10px;
-    height: 55vh;     /* 모바일은 화면 55% */
+    border-radius: 16px;
+    height: 48vh;     /* 모바일은 화면 48% — footer 여유 확보 */
+    min-height: 300px;
   }
   .ceo-modal-footer {
     padding: 0.6rem 0.9rem;
+  }
+  .ceo-tab {
+    font-size: 0.79rem;
+    padding: 0.55rem 0.4rem;
+  }
+  .ceo-cm-video-wrap {
+    max-width: 160px;
   }
 }
