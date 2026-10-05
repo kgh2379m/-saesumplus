@@ -702,7 +702,13 @@ function initReviewModal() {
         })
       });
 
-      if (!res.ok) throw new Error('서버 오류');
+      /* 401 = 미리보기 환경 제한 */
+      if (res.status === 401 || res.status === 403) {
+        showMsg('⚠️ 미리보기 환경에서는 후기 제출이 제한됩니다.\n실제 홈페이지(배포 사이트)에서 이용해 주세요!', 'error');
+        return;
+      }
+
+      if (!res.ok) throw new Error('서버 오류 ' + res.status);
 
       // 성공
       form.reset();
@@ -719,7 +725,7 @@ function initReviewModal() {
       }, 3000);
 
     } catch {
-      showMsg('⚠️ 제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+      showMsg('⚠️ 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
     } finally {
       setLoading(false);
     }
