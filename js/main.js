@@ -498,3 +498,210 @@ function initCeoModal() {
 }
 
 document.addEventListener('DOMContentLoaded', initCeoModal);
+
+/* ══════════════════════════════════════
+   15. 고객 후기 — 로드 & 작성 모달
+══════════════════════════════════════ */
+
+/* ── 15-1. 승인된 후기 목록 로드 ── */
+async function loadReviews() {
+  const grid    = document.getElementById('reviewsGrid');
+  const loading = document.getElementById('reviewsLoading');
+  if (!grid) return;
+
+  try {
+    const res  = await fetch('tables/reviews?limit=50&sort=created_at');
+    const data = await res.json();
+    const rows = (data.data || []).filter(r => r.approved === true || r.approved === 'true' || r.approved === 1);
+
+    // 로딩 제거
+    if (loading) loading.remove();
+
+    if (!rows.length) {
+      grid.innerHTML = '<p class="reviews-empty">아직 등록된 후기가 없습니다.<br>첫 번째 후기를 남겨주세요! 😊</p>';
+      return;
+    }
+
+    const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+    const mask  = name => name.length <= 1 ? name + '○○' : name[0] + '○'.repeat(name.length - 1);
+    const initial = name => (name || '?')[0];
+
+    grid.innerHTML = rows.map(r => `
+      <blockquote class="review-card review-card-dynamic">
+        <div class="review-stars" aria-label="별점 ${r.rating}점" style="color:#f5a623;font-size:1rem;letter-spacing:0.1em;margin-bottom:1rem;">${stars(Number(r.rating))}</div>
+        <p class="review-text" style="font-size:0.95rem;line-height:1.8;color:var(--charcoal);margin-bottom:1.5rem;font-style:italic;">"${escapeHtml(r.content)}"</p>
+        <footer class="review-meta">
+          <span class="reviewer-avatar" aria-hidden="true" style="width:40px;height:40px;background:var(--brand-blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">${escapeHtml(initial(r.author_name))}</span>
+          <div>
+            <cite class="reviewer-name" style="display:block;font-weight:600;font-size:0.875rem;color:var(--charcoal);font-style:normal;">${escapeHtml(mask(r.author_name))} 고객님</cite>
+            <span class="review-service" style="display:block;font-size:0.775rem;color:var(--brand-blue);">${escapeHtml(r.service)}</span>
+            <span class="review-location" style="display:block;font-size:0.775rem;color:var(--dark-gray);">${escapeHtml(r.region)}</span>
+          </div>
+        </footer>
+      </blockquote>
+    `).join('');
+
+  } catch (err) {
+    if (loading) loading.remove();
+    grid.innerHTML = '<p class="reviews-empty">후기를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>';
+  }
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+document.addEventListener('DOMContentLoaded', loadReviews);
+
+/* ── 15-2. 후기 작성 모달 ── */
+function initReviewModal() {
+  const modal      = document.getElementById('reviewModal');
+  const openBtn    = document.getElementById('reviewWriteBtn');
+  const closeBtn   = document.getElementById('reviewModalClose');
+  const cancelBtn  = document.getElementById('reviewCancelBtn');
+  const backdrop   = document.getElementById('reviewModalBackdrop');
+  const form       = document.getElementById('reviewForm');
+  const submitBtn  = document.getElementById('reviewSubmitBtn');
+  const formMsg    = document.getElementById('reviewFormMsg');
+  const ratingInput = document.getElementById('rv-rating');
+  const starBtns   = document.querySelectorAll('.star-btn');
+  const starLabel  = document.getElementById('starLabel');
+  const textarea   = document.getElementById('rv-content');
+  const charCount  = document.getElementById('charCount');
+
+  if (!modal || !openBtn) return;
+
+  /* 모달 열기 */
+  function openModal() {
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    document.getElementById('rv-name').focus();
+  }
+
+  /* 모달 닫기 */
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+
+  /* 별점 인터랙션 */
+  const starLabels = ['', '별로예요', '그저 그래요', '괜찮아요', '좋아요', '최고예요!'];
+  let currentRating = 0;
+
+  function setStars(val) {
+    currentRating = val;
+    ratingInput.value = val;
+    starBtns.forEach(btn => {
+      btn.classList.toggle('active', Number(btn.dataset.val) <= val);
+    });
+    starLabel.textContent = val ? `${val}점 — ${starLabels[val]}` : '별점을 선택해주세요';
+  }
+
+  starBtns.forEach(btn => {
+    btn.addEventListener('click',      () => setStars(Number(btn.dataset.val)));
+    btn.addEventListener('mouseenter', () => {
+      starBtns.forEach(b => b.classList.toggle('active', Number(b.dataset.val) <= Number(btn.dataset.val)));
+    });
+    btn.addEventListener('mouseleave', () => setStars(currentRating));
+  });
+
+  /* 글자 수 카운터 */
+  if (textarea && charCount) {
+    textarea.addEventListener('input', () => {
+      charCount.textContent = `${textarea.value.length} / 1000`;
+    });
+  }
+
+  /* 폼 제출 */
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    hideMsg();
+
+    const name    = form.author_name.value.trim();
+    const phone   = form.phone_last4.value.trim();
+    const service = form.service.value;
+    const region  = form.region.value.trim();
+    const rating  = Number(ratingInput.value);
+    const content = form.content.value.trim();
+
+    // 유효성 검사
+    if (!name)              return showMsg('이름을 입력해주세요.', 'error');
+    if (!/^\d{4}$/.test(phone)) return showMsg('연락처 뒷 4자리를 숫자 4자리로 입력해주세요.', 'error');
+    if (!service)           return showMsg('이용 서비스를 선택해주세요.', 'error');
+    if (!region)            return showMsg('지역을 입력해주세요.', 'error');
+    if (!rating)            return showMsg('별점을 선택해주세요.', 'error');
+    if (content.length < 20) return showMsg('후기 내용을 20자 이상 입력해주세요.', 'error');
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('tables/reviews', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          author_name:  name,
+          phone_last4:  phone,
+          service,
+          region,
+          rating,
+          content,
+          approved:     false,
+          admin_note:   ''
+        })
+      });
+
+      if (!res.ok) throw new Error('서버 오류');
+
+      // 성공
+      form.reset();
+      setStars(0);
+      if (charCount) charCount.textContent = '0 / 1000';
+      showMsg('✅ 후기가 접수되었습니다! 관리자 확인 후 게시됩니다. 감사합니다 😊', 'success');
+      submitBtn.disabled = true;
+
+      // 3초 후 모달 닫기
+      setTimeout(() => {
+        closeModal();
+        submitBtn.disabled = false;
+        hideMsg();
+      }, 3000);
+
+    } catch {
+      showMsg('⚠️ 제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  function showMsg(text, type) {
+    formMsg.textContent = text;
+    formMsg.className   = `review-form-msg ${type}`;
+    formMsg.hidden      = false;
+    formMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function hideMsg() {
+    formMsg.hidden    = true;
+    formMsg.textContent = '';
+  }
+  function setLoading(on) {
+    submitBtn.disabled    = on;
+    submitBtn.innerHTML   = on
+      ? '<i class="fa fa-spinner fa-spin"></i> 제출 중...'
+      : '<i class="fa fa-paper-plane"></i> 후기 제출하기';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initReviewModal);

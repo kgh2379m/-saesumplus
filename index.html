@@ -466,61 +466,108 @@
         <p class="story-desc-center">후기의 양보다 진정성을 더 소중히 여깁니다.</p>
       </div>
 
-      <div class="reviews-grid reveal-up visible">
-        <blockquote class="review-card">
-          <div class="review-stars" aria-label="별점 5점">★★★★★</div>
-          <p class="review-text">"매트리스에서 진드기가 얼마나 많았는지 직접 보고 깜짝 놀랐어요. 작업 후 아이 알레르기가 확실히 좋아졌습니다. 꼼꼼한 작업에 정말 감사해요."</p>
-          <footer class="review-meta">
-            <span class="reviewer-avatar" aria-hidden="true">김</span>
-            <div>
-              <cite class="reviewer-name">김○○ 고객님</cite>
-              <span class="review-service">매트리스 케어</span>
-              <span class="review-location">서울 강남구</span>
-            </div>
-          </footer>
-        </blockquote>
+      <!-- 동적 후기 목록 -->
+      <div class="reviews-grid reveal-up visible" id="reviewsGrid">
+        <!-- 로딩 스피너 -->
+        <div class="reviews-loading" id="reviewsLoading" aria-live="polite">
+          <div class="reviews-spinner"></div>
+          <span>후기를 불러오는 중...</span>
+        </div>
+      </div>
 
-        <blockquote class="review-card review-featured">
-          <div class="review-stars" aria-label="별점 5점">★★★★★</div>
-          <p class="review-text">"소파 케어를 받았는데 마치 새 소파가 된 것 같아요. 단순히 겉만 닦는 게 아니라 정말 속까지 깨끗하게 해주셨어요. 가격도 합리적이고 서비스 마인드도 최고였습니다."</p>
-          <footer class="review-meta">
-            <span class="reviewer-avatar" aria-hidden="true">이</span>
-            <div>
-              <cite class="reviewer-name">이○○ 고객님</cite>
-              <span class="review-service">소파 케어</span>
-              <span class="review-location">서울 서초구</span>
-            </div>
-          </footer>
-        </blockquote>
-
-        <blockquote class="review-card">
-          <div class="review-stars" aria-label="별점 5점">★★★★★</div>
-          <p class="review-text">"강아지를 키우다 보니 카페트 냄새가 걱정이었는데, 작업 후 냄새가 완전히 없어졌어요! 반려동물 케어도 함께 받았는데 너무 만족스럽습니다."</p>
-          <footer class="review-meta">
-            <span class="reviewer-avatar" aria-hidden="true">박</span>
-            <div>
-              <cite class="reviewer-name">박○○ 고객님</cite>
-              <span class="review-service">카페트 + 반려동물 케어</span>
-              <span class="review-location">경기 성남시</span>
-            </div>
-          </footer>
-        </blockquote>
-
-        <blockquote class="review-card">
-          <div class="review-stars" aria-label="별점 5점">★★★★★</div>
-          <p class="review-text">"에어컨 청소 후 공기 질이 달라진 게 느껴져요. 필터에 쌓인 먼지를 보고 놀랐고, 작업 후 거실 공기가 훨씬 맑아졌습니다. 매년 정기적으로 맡길 예정이에요."</p>
-          <footer class="review-meta">
-            <span class="reviewer-avatar" aria-hidden="true">최</span>
-            <div>
-              <cite class="reviewer-name">최○○ 고객님</cite>
-              <span class="review-service">에어컨 케어</span>
-              <span class="review-location">서울 마포구</span>
-            </div>
-          </footer>
-        </blockquote>
+      <!-- 플랫폼 안내 문구 + 후기 남기기 버튼 -->
+      <div class="reviews-footer reveal-up visible">
+        <p class="reviews-platform-note">
+          <i class="fa fa-search" aria-hidden="true"></i>
+          네이버 등 여러 플랫폼에서 검색을 통해 더 많은 후기를 보실 수 있습니다.
+        </p>
+        <button class="btn btn-review-write" id="reviewWriteBtn" aria-label="후기 작성하기">
+          <i class="fa fa-pen" aria-hidden="true"></i>
+          후기 남기기
+        </button>
       </div>
     </div>
   </section>
+
+  <!-- ========== 후기 작성 모달 ========== -->
+  <div id="reviewModal" class="review-modal" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle" hidden>
+    <div class="review-modal-backdrop" id="reviewModalBackdrop"></div>
+    <div class="review-modal-box">
+      <div class="review-modal-header">
+        <h2 id="reviewModalTitle"><i class="fa fa-pen"></i> 후기 남기기</h2>
+        <button class="review-modal-close" id="reviewModalClose" aria-label="닫기">&times;</button>
+      </div>
+      <div class="review-modal-body">
+        <p class="review-modal-desc">소중한 후기는 관리자 확인 후 게시됩니다.<br>연락처 뒷자리는 화면에 표시되지 않으며 실제 고객 확인 용도로만 사용됩니다.</p>
+
+        <form id="reviewForm" novalidate>
+          <!-- 이름 + 연락처 뒷 4자리 -->
+          <div class="review-form-row">
+            <div class="review-form-group">
+              <label for="rv-name">이름 <span class="req">*</span></label>
+              <input type="text" id="rv-name" name="author_name" placeholder="홍길동" maxlength="20" required />
+            </div>
+            <div class="review-form-group">
+              <label for="rv-phone">연락처 뒷 4자리 <span class="req">*</span></label>
+              <input type="text" id="rv-phone" name="phone_last4" placeholder="4662" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" required />
+            </div>
+          </div>
+
+          <!-- 서비스 + 지역 -->
+          <div class="review-form-row">
+            <div class="review-form-group">
+              <label for="rv-service">이용 서비스 <span class="req">*</span></label>
+              <select id="rv-service" name="service" required>
+                <option value="">선택해주세요</option>
+                <option value="매트리스 케어">매트리스 케어</option>
+                <option value="소파 케어">소파 케어</option>
+                <option value="카페트 케어">카페트 케어</option>
+                <option value="에어컨 케어">에어컨 케어</option>
+                <option value="반려동물 공간케어">반려동물 공간케어</option>
+                <option value="복합 케어">복합 케어</option>
+              </select>
+            </div>
+            <div class="review-form-group">
+              <label for="rv-region">지역 <span class="req">*</span></label>
+              <input type="text" id="rv-region" name="region" placeholder="서울 강남구" maxlength="30" required />
+            </div>
+          </div>
+
+          <!-- 별점 -->
+          <div class="review-form-group">
+            <label>별점 <span class="req">*</span></label>
+            <div class="star-rating" id="starRating" role="group" aria-label="별점 선택">
+              <button type="button" class="star-btn" data-val="1" aria-label="별점 1점">★</button>
+              <button type="button" class="star-btn" data-val="2" aria-label="별점 2점">★</button>
+              <button type="button" class="star-btn" data-val="3" aria-label="별점 3점">★</button>
+              <button type="button" class="star-btn" data-val="4" aria-label="별점 4점">★</button>
+              <button type="button" class="star-btn" data-val="5" aria-label="별점 5점">★</button>
+            </div>
+            <input type="hidden" id="rv-rating" name="rating" value="0" />
+            <span class="star-label" id="starLabel">별점을 선택해주세요</span>
+          </div>
+
+          <!-- 후기 내용 -->
+          <div class="review-form-group">
+            <label for="rv-content">후기 내용 <span class="req">*</span></label>
+            <textarea id="rv-content" name="content" placeholder="서비스를 이용하신 솔직한 후기를 남겨주세요. (최소 20자)" rows="5" minlength="20" maxlength="1000" required></textarea>
+            <span class="char-count" id="charCount">0 / 1000</span>
+          </div>
+
+          <!-- 메시지 -->
+          <div id="reviewFormMsg" class="review-form-msg" hidden></div>
+
+          <div class="review-form-actions">
+            <button type="button" class="btn btn-outline-gray" id="reviewCancelBtn">취소</button>
+            <button type="submit" class="btn btn-primary" id="reviewSubmitBtn">
+              <i class="fa fa-paper-plane" aria-hidden="true"></i> 후기 제출하기
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- ========== /후기 작성 모달 ========== -->
 
   <!-- ========== BLOG ========== -->
   <section id="blog" class="story-section blog-section bg-light" aria-label="블로그 및 홈케어 정보">
