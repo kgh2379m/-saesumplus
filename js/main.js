@@ -702,13 +702,12 @@ function initReviewModal() {
         })
       });
 
-      /* 401 = 미리보기 환경 제한 */
-      if (res.status === 401 || res.status === 403) {
-        showMsg('⚠️ 미리보기 환경에서는 후기 제출이 제한됩니다.\n실제 홈페이지(배포 사이트)에서 이용해 주세요!', 'error');
-        return;
+      /* 상태 코드 확인 */
+      if (!res.ok) {
+        let errBody = '';
+        try { errBody = await res.text(); } catch(_) {}
+        throw new Error('HTTP ' + res.status + ' — ' + errBody.slice(0, 200));
       }
-
-      if (!res.ok) throw new Error('서버 오류 ' + res.status);
 
       // 성공
       form.reset();
@@ -724,8 +723,8 @@ function initReviewModal() {
         hideMsg();
       }, 3000);
 
-    } catch {
-      showMsg('⚠️ 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+    } catch (err) {
+      showMsg('⚠️ 오류: ' + (err && err.message ? err.message : String(err)), 'error');
     } finally {
       setLoading(false);
     }
