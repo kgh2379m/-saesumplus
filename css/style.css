@@ -1316,6 +1316,14 @@ address { font-style: normal; }
   grid-template-columns: repeat(2, 1fr);
 }
 
+/* 모바일 — 1열로 강제 */
+@media (max-width: 768px) {
+  #reviews-dynamic-grid,
+  #reviews-fallback {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* 안내 문구 */
 .reviews-guide-note {
   display: flex;
@@ -1974,7 +1982,9 @@ footer {
   .partner-grid  { grid-template-columns: repeat(2, 1fr); }
   .blog-grid     { grid-template-columns: repeat(2, 1fr); }
   .footer-grid   { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
-  .reviews-grid  { grid-template-columns: 1fr; }
+  .reviews-grid,
+  #reviews-dynamic-grid,
+  #reviews-fallback { grid-template-columns: 1fr; }
   .contact-wrap  { grid-template-columns: 1fr; gap: 3rem; }
 
   .cs-features { grid-template-columns: repeat(2, 1fr); }
