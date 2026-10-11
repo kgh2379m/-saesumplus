@@ -540,14 +540,14 @@ function escapeHtml(str) {
 }
 
 function renderReviewCard(row, isFeatured) {
-  const star    = escapeHtml(row[COL_STAR]    || '5');
-  const text    = escapeHtml(row[COL_TEXT]    || '');
-  const author  = escapeHtml(row[COL_AUTHOR]  || '익명 고객님');
-  const service = escapeHtml(row[COL_SERVICE] || '');
-  const date    = formatDate(row[COL_TIME]);
-  const avatar  = escapeHtml(avatarChar(row[COL_AUTHOR]));
+  const star        = escapeHtml(row[COL_STAR]    || '5');
+  const text        = escapeHtml(row[COL_TEXT]    || '');
+  const authorFull  = escapeHtml(row[COL_AUTHOR]  || '익명 고객님');
+  const service     = escapeHtml(row[COL_SERVICE] || '');
+  const date        = formatDate(row[COL_TIME]);
+  const avatar      = escapeHtml(avatarChar(row[COL_AUTHOR]));
   const featuredClass = isFeatured ? ' review-card-featured' : '';
-  const starLabel = `별점 ${star}점`;
+  const starLabel   = `별점 ${star}점`;
 
   return `
     <blockquote class="review-card review-card-dynamic${featuredClass}">
@@ -556,9 +556,9 @@ function renderReviewCard(row, isFeatured) {
       <footer class="review-meta">
         <span class="reviewer-avatar" aria-hidden="true">${avatar}</span>
         <div>
-          <cite class="reviewer-name">${author}</cite>
+          <cite class="reviewer-name">${authorFull}</cite>
           ${service ? `<span class="review-service">${service}</span>` : ''}
-          ${date    ? `<span class="review-location">${date}</span>` : ''}
+          ${date    ? `<span class="review-date">${date}</span>` : ''}
         </div>
       </footer>
     </blockquote>`;

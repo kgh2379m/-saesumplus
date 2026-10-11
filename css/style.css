@@ -1260,13 +1260,30 @@ address { font-style: normal; }
 }
 
 .review-service,
-.review-location {
+.review-location,
+.review-date {
   display: block;
   font-size: 0.775rem;
   color: var(--dark-gray);
 }
 
 .review-service { color: var(--brand-blue); }
+
+/* 동적 후기 — 작성자 전체 정보 표시 */
+.review-card-dynamic .reviewer-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  word-break: keep-all;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.review-date {
+  font-size: 0.75rem;
+  color: var(--dark-gray);
+  opacity: 0.8;
+}
 
 /* ── 동적 후기 카드 (구글 시트 연동) ── */
 .reviews-loading-state {
