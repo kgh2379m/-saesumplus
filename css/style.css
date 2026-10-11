@@ -1311,9 +1311,57 @@ address { font-style: normal; }
   border-color: rgba(0,145,234,0.2);
 }
 
-/* 카드가 많을 때 3열 그리드 */
+/* 카드가 많을 때 2열 그리드 */
 #reviews-dynamic-grid {
   grid-template-columns: repeat(2, 1fr);
+}
+
+/* 안내 문구 */
+.reviews-guide-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0 0 1.5rem;
+  padding: 0.9rem 1.25rem;
+  background: rgba(0,145,234,0.06);
+  border: 1px dashed rgba(0,145,234,0.35);
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  color: var(--brand-blue-dark);
+  line-height: 1.6;
+}
+
+.reviews-guide-note i {
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: var(--brand-blue);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* 더보기 버튼 */
+.btn-reviews-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background: var(--white);
+  color: var(--brand-blue);
+  border: 1.5px solid var(--brand-blue);
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.btn-reviews-more:hover {
+  background: var(--brand-blue);
+  color: var(--white);
+}
+
+.btn-reviews-more i {
+  font-size: 0.8rem;
 }
 
 /* ── 구글 폼 후기 작성 섹션 ── */

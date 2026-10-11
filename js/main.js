@@ -564,10 +564,16 @@ function renderReviewCard(row, isFeatured) {
     </blockquote>`;
 }
 
+const REVIEWS_PAGE_SIZE = 6; // 한 번에 보여줄 최대 후기 수
+let allReviewRows = [];      // 전체 후기 보관
+let shownCount = 0;          // 현재 표시된 후기 수
+
 async function loadGsheetReviews() {
   const loading  = document.getElementById('reviews-loading');
   const grid     = document.getElementById('reviews-dynamic-grid');
   const fallback = document.getElementById('reviews-fallback');
+  const moreWrap = document.getElementById('reviews-more-wrap');
+  const moreBtn  = document.getElementById('reviews-more-btn');
   if (!grid) return;
 
   try {
@@ -576,25 +582,32 @@ async function loadGsheetReviews() {
     const data = await res.json();
     const rows = (data.reviews || []).filter(r => r[COL_TEXT] && r[COL_TEXT].trim());
 
+    if (loading) loading.style.display = 'none';
+
     if (rows.length === 0) {
-      // 응답 없으면 fallback 하드코딩 후기 표시
-      if (loading)  loading.style.display  = 'none';
+      // 후기 없으면 fallback 표시
       if (fallback) fallback.style.display = '';
       return;
     }
 
-    // 최신순 정렬 후 최대 9개
-    const sorted = rows
+    // 최신순 정렬, 전체 보관
+    allReviewRows = rows
       .slice()
-      .sort((a, b) => new Date(b[COL_TIME]) - new Date(a[COL_TIME]))
-      .slice(0, 9);
+      .sort((a, b) => new Date(b[COL_TIME]) - new Date(a[COL_TIME]));
 
-    grid.innerHTML = sorted
+    // 첫 6개 표시
+    shownCount = Math.min(REVIEWS_PAGE_SIZE, allReviewRows.length);
+    grid.innerHTML = allReviewRows
+      .slice(0, shownCount)
       .map((row, i) => renderReviewCard(row, i === 0))
       .join('');
-
-    if (loading) loading.style.display  = 'none';
     grid.style.display = '';
+
+    // 6개 초과면 더보기 버튼 표시
+    if (allReviewRows.length > REVIEWS_PAGE_SIZE && moreWrap) {
+      moreWrap.style.display = '';
+      updateMoreBtn(moreBtn);
+    }
 
   } catch (err) {
     console.warn('[Reviews] API 오류, fallback 표시:', err.message);
@@ -602,6 +615,35 @@ async function loadGsheetReviews() {
     if (fallback) fallback.style.display = '';
   }
 }
+
+function updateMoreBtn(btn) {
+  if (!btn) return;
+  const remaining = allReviewRows.length - shownCount;
+  if (remaining <= 0) {
+    btn.closest('#reviews-more-wrap').style.display = 'none';
+    return;
+  }
+  btn.innerHTML = '<i class="fa fa-chevron-down" aria-hidden="true"></i> 후기 더보기 (' + remaining + '개 더 보기)';
+}
+
+function initReviewMoreBtn() {
+  const btn  = document.getElementById('reviews-more-btn');
+  const grid = document.getElementById('reviews-dynamic-grid');
+  if (!btn || !grid) return;
+
+  btn.addEventListener('click', () => {
+    const nextCount = Math.min(shownCount + REVIEWS_PAGE_SIZE, allReviewRows.length);
+    const newCards  = allReviewRows
+      .slice(shownCount, nextCount)
+      .map(row => renderReviewCard(row, false))
+      .join('');
+    grid.insertAdjacentHTML('beforeend', newCards);
+    shownCount = nextCount;
+    updateMoreBtn(btn);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initReviewMoreBtn);
 
 document.addEventListener('DOMContentLoaded', loadGsheetReviews);
 

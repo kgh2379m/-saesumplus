@@ -473,8 +473,23 @@
           <span class="reviews-loading-spinner"></span>
           <p>고객 후기를 불러오는 중입니다…</p>
         </div>
+
+        <!-- 안내 문구 (항상 표시) -->
+        <p class="reviews-guide-note" id="reviews-guide-note">
+          <i class="fa fa-quote-left" aria-hidden="true"></i>
+          아래 폼으로 후기를 남겨주시면, 작성하신 내용이 바로 이곳에 카드로 등록됩니다.
+        </p>
+
         <!-- 후기 카드 그리드 (JS로 채워짐) -->
         <div id="reviews-dynamic-grid" class="reviews-grid" style="display:none;" aria-label="고객 후기 목록"></div>
+
+        <!-- 더보기 버튼 (6개 초과 시 JS로 표시) -->
+        <div id="reviews-more-wrap" style="display:none; text-align:center; margin-top:1.5rem;">
+          <button id="reviews-more-btn" class="btn-reviews-more" type="button">
+            <i class="fa fa-chevron-down" aria-hidden="true"></i>
+            후기 더보기
+          </button>
+        </div>
         <!-- 응답 없을 때 fallback -->
         <div id="reviews-fallback" class="reviews-grid" style="display:none;">
           <blockquote class="review-card review-featured">
