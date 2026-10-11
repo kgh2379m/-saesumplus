@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>후기 렌더링 디버그</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; font-size: 0.85rem; }
+    h2 { color: #4ec9b0; margin-top: 1.5rem; }
+    .key  { background: #252526; margin: 3px 0; padding: 5px 10px; border-radius: 4px; color: #ce9178; word-break: break-all; border-left: 3px solid #007acc; }
+    .val  { background: #252526; margin: 3px 0; padding: 5px 10px; border-radius: 4px; color: #9cdcfe; word-break: break-all; border-left: 3px solid #4ec9b0; }
+    .match { border-left-color: #4caf50; color: #6bcf6b; }
+    .nomatch { border-left-color: #f44336; color: #f48771; }
+    pre { background: #252526; padding: 12px; border-radius: 6px; overflow: auto; white-space: pre-wrap; word-break: break-all; color: #9cdcfe; }
+  </style>
+</head>
+<body>
+  <h2>1. 실제 API 컬럼 키 (문자 코드 포함)</h2>
+  <div id="keys">로딩 중...</div>
+
+  <h2>2. JS 코드의 COL_AUTHOR 값</h2>
+  <div id="col-author"></div>
+
+  <h2>3. 키 일치 여부</h2>
+  <div id="match"></div>
+
+  <h2>4. authorFull 렌더링 값</h2>
+  <div id="author-val"></div>
+
+  <script>
+    const API = 'https://script.google.com/macros/s/AKfycbzJmaxqyiLknXzCPXXZOGOxHrzyynEODsrVypDzjtZ9ktMyt40pm8IG_79FqwyHILFa/exec';
+
+    // JS 코드에 박혀있는 COL_AUTHOR 값 (main.js와 동일하게)
+    const COL_AUTHOR = '성함(가명가능), 지역(시/군 단위까지만), 폰번호4자리 작성해 주세요.(개인정보 보호 위해 작성규칙 지켜주세요!)';
+
+    function toCharCodes(str) {
+      return Array.from(str).map(c => c + '(' + c.charCodeAt(0) + ')').join(' ');
+    }
+
+    fetch(API)
+      .then(r => r.json())
+      .then(data => {
+        const reviews = data.reviews || [];
+        if (!reviews.length) { document.getElementById('keys').textContent = '후기 없음'; return; }
+
+        const actualKeys = Object.keys(reviews[0]);
+        const authorKey  = actualKeys[3]; // 4번째 컬럼
+
+        // 1. 실제 키 목록
+        document.getElementById('keys').innerHTML = actualKeys.map((k, i) =>
+          `<div class="key">[${i}] "${k}"<br><small style="opacity:0.6">${toCharCodes(k.substring(0,20))}</small></div>`
+        ).join('');
+
+        // 2. JS COL_AUTHOR
+        document.getElementById('col-author').innerHTML =
+          `<div class="key">"${COL_AUTHOR}"<br><small style="opacity:0.6">${toCharCodes(COL_AUTHOR.substring(0,20))}</small></div>`;
+
+        // 3. 일치 여부
+        const isMatch = authorKey === COL_AUTHOR;
+        document.getElementById('match').innerHTML =
+          `<div class="${isMatch ? 'val match' : 'val nomatch'}">
+            ${isMatch ? '✅ 완전 일치!' : '❌ 불일치! 아래 차이 확인'}
+           </div>
+           ${!isMatch ? `<div class="val nomatch">실제 키 길이: ${authorKey.length} / COL_AUTHOR 길이: ${COL_AUTHOR.length}</div>` : ''}`;
+
+        // 4. 실제 값
+        const authorVal = reviews[0][authorKey];
+        const authorByColAuthor = reviews[0][COL_AUTHOR];
+        document.getElementById('author-val').innerHTML =
+          `<div class="val">실제 키[3]로 접근: "${authorVal}"</div>
+           <div class="${authorByColAuthor ? 'val match' : 'val nomatch'}">COL_AUTHOR로 접근: "${authorByColAuthor || '❌ undefined'}"</div>`;
+      })
+      .catch(e => { document.getElementById('keys').textContent = '오류: ' + e.message; });
+  </script>
+</body>
+</html>
