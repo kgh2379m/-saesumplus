@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', initCeoModal);
    15. 구글 시트 후기 자동 로드
    — Apps Script API → 후기 카드 렌더링
 ══════════════════════════════════════ */
-const REVIEWS_API = 'https://script.google.com/macros/s/AKfycbyABVVHaGz3s6rogY3ds0EWXQSlr-ffvn4GVFapqD9wQhSE1DrK6J9J2FEzFAGt/exec';
+const REVIEWS_API = 'https://script.google.com/macros/s/AKfycbzJmaxqyiLknXzCPXXZOGOxHrzyynEODsrVypDzjtZ9ktMyt40pm8IG_79FqwyHILFa/exec';
 
 // 컬럼 키 매핑 (구글 시트 헤더 그대로)
 const COL_STAR    = '서비스에 대한 평가를 별점으로 보여주세요. (5점 만점)';
