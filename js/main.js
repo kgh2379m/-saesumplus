@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSmoothScroll();
   initServiceCards();
   initParallax();
+  initGformLazyLoad();
 });
 
 /* ══════════════════════════════════════
@@ -499,4 +500,145 @@ function initCeoModal() {
 
 document.addEventListener('DOMContentLoaded', initCeoModal);
 
+/* ══════════════════════════════════════
+   15. 구글 시트 후기 자동 로드
+   — Apps Script API → 후기 카드 렌더링
+══════════════════════════════════════ */
+const REVIEWS_API = 'https://script.google.com/macros/s/AKfycbyABVVHaGz3s6rogY3ds0EWXQSlr-ffvn4GVFapqD9wQhSE1DrK6J9J2FEzFAGt/exec';
 
+// 컬럼 키 매핑 (구글 시트 헤더 그대로)
+const COL_STAR    = '서비스에 대한 평가를 별점으로 보여주세요. (5점 만점)';
+const COL_TEXT    = '서비스 받고 나신 소감을 자유롭게 작성해 주세요.';
+const COL_AUTHOR  = '성함(가명가능), 지역(시/군 단위까지만), 폰번호4자리 작성해 주세요.(개인정보 보호 위해 작성규칙 지켜주세요!)';
+const COL_SERVICE = '제공 받은 서비스 품목 선택해 주세요. (복수선택 가능)';
+const COL_TIME    = '타임스탬프';
+
+function starHTML(score) {
+  const n = parseInt(score, 10) || 5;
+  return '★'.repeat(Math.min(n, 5)) + '☆'.repeat(Math.max(0, 5 - n));
+}
+
+function avatarChar(authorStr) {
+  if (!authorStr) return '익';
+  const trimmed = authorStr.trim();
+  return trimmed.charAt(0) || '익';
+}
+
+function formatDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d)) return '';
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function renderReviewCard(row, isFeatured) {
+  const star    = escapeHtml(row[COL_STAR]    || '5');
+  const text    = escapeHtml(row[COL_TEXT]    || '');
+  const author  = escapeHtml(row[COL_AUTHOR]  || '익명 고객님');
+  const service = escapeHtml(row[COL_SERVICE] || '');
+  const date    = formatDate(row[COL_TIME]);
+  const avatar  = escapeHtml(avatarChar(row[COL_AUTHOR]));
+  const featuredClass = isFeatured ? ' review-card-featured' : '';
+  const starLabel = `별점 ${star}점`;
+
+  return `
+    <blockquote class="review-card review-card-dynamic${featuredClass}">
+      <div class="review-stars" aria-label="${starLabel}">${starHTML(star)}</div>
+      <p class="review-text">"${text}"</p>
+      <footer class="review-meta">
+        <span class="reviewer-avatar" aria-hidden="true">${avatar}</span>
+        <div>
+          <cite class="reviewer-name">${author}</cite>
+          ${service ? `<span class="review-service">${service}</span>` : ''}
+          ${date    ? `<span class="review-location">${date}</span>` : ''}
+        </div>
+      </footer>
+    </blockquote>`;
+}
+
+async function loadGsheetReviews() {
+  const loading  = document.getElementById('reviews-loading');
+  const grid     = document.getElementById('reviews-dynamic-grid');
+  const fallback = document.getElementById('reviews-fallback');
+  if (!grid) return;
+
+  try {
+    const res  = await fetch(REVIEWS_API);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const rows = (data.reviews || []).filter(r => r[COL_TEXT] && r[COL_TEXT].trim());
+
+    if (rows.length === 0) {
+      // 응답 없으면 fallback 하드코딩 후기 표시
+      if (loading)  loading.style.display  = 'none';
+      if (fallback) fallback.style.display = '';
+      return;
+    }
+
+    // 최신순 정렬 후 최대 9개
+    const sorted = rows
+      .slice()
+      .sort((a, b) => new Date(b[COL_TIME]) - new Date(a[COL_TIME]))
+      .slice(0, 9);
+
+    grid.innerHTML = sorted
+      .map((row, i) => renderReviewCard(row, i === 0))
+      .join('');
+
+    if (loading) loading.style.display  = 'none';
+    grid.style.display = '';
+
+  } catch (err) {
+    console.warn('[Reviews] API 오류, fallback 표시:', err.message);
+    if (loading)  loading.style.display  = 'none';
+    if (fallback) fallback.style.display = '';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadGsheetReviews);
+
+/* ══════════════════════════════════════
+   16. 구글 폼 iframe 지연 로드
+   — 후기 섹션이 뷰포트에 들어올 때 src 주입
+══════════════════════════════════════ */
+function initGformLazyLoad() {
+  const wrap    = document.getElementById('gform-iframe-wrap');
+  const iframe  = document.getElementById('gform-iframe');
+  const loading = document.getElementById('gform-loading');
+  if (!wrap || !iframe) return;
+
+  const dataSrc = iframe.getAttribute('data-src');
+  if (!dataSrc) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(wrap);
+
+      // src 주입
+      iframe.src = dataSrc;
+
+      // 로드 완료 시 스피너 숨기고 iframe 표시
+      iframe.addEventListener('load', () => {
+        if (loading) loading.style.display = 'none';
+        iframe.style.display = 'block';
+      }, { once: true });
+
+      // 8초 이내 load 이벤트 없으면 강제 표시
+      setTimeout(() => {
+        if (loading) loading.style.display = 'none';
+        iframe.style.display = 'block';
+      }, 8000);
+    });
+  }, { threshold: 0.1 });
+
+  observer.observe(wrap);
+}
