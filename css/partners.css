@@ -1,0 +1,413 @@
+/* =====================================================
+   새숨더함 — 파트너 소개 페이지 스타일
+   ===================================================== */
+
+/* ── 페이지 상단 여백 (navbar 높이만큼) ── */
+.partners-page {
+  padding-top: 0;
+}
+
+/* ══════════════════════════════════════
+   1. 페이지 히어로
+══════════════════════════════════════ */
+.partners-hero {
+  background: linear-gradient(135deg, var(--brand-blue-dark) 0%, var(--brand-blue) 60%, var(--brand-cyan) 100%);
+  padding: calc(var(--nav-h) + 4rem) 1.5rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.partners-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.partners-hero-inner {
+  position: relative;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.partners-hero-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 600;
+  color: var(--white);
+  margin: 0.75rem 0 1.25rem;
+  line-height: 1.3;
+}
+
+.partners-hero-desc {
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  color: rgba(255,255,255,0.85);
+  line-height: 1.8;
+}
+
+.partners-hero-desc strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   2. 메인 컨텐츠 영역
+══════════════════════════════════════ */
+.partners-main {
+  padding: 5rem 0 6rem;
+  background: var(--off-white);
+}
+
+/* ══════════════════════════════════════
+   3. 파트너 카드 그리드
+══════════════════════════════════════ */
+.partners-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+/* ══════════════════════════════════════
+   4. 파트너 카드
+══════════════════════════════════════ */
+
+/* 대표 카드 — 전체 너비, 가로 레이아웃 */
+.partner-card-ceo {
+  grid-column: 1 / -1;
+  border: 2px solid rgba(0,145,234,0.3);
+  background: linear-gradient(135deg, #f0f8ff 0%, var(--white) 60%);
+}
+
+.partner-card-ceo .partner-card-inner {
+  flex-direction: row;
+}
+
+.partner-card-ceo .partner-photo-wrap {
+  width: 300px;
+  min-width: 300px;
+  aspect-ratio: unset;
+  min-height: 360px;
+}
+
+.partner-badge-ceo {
+  top: 1rem;
+  left: 1rem;
+}
+
+.partner-badge-ceo .partner-num {
+  background: rgba(0,95,173,0.9);
+  font-size: 0.8rem;
+  padding: 0.35rem 0.9rem;
+}
+
+.partner-title-ceo {
+  background: linear-gradient(135deg, var(--brand-blue-soft), #c8e8f8);
+  color: var(--brand-blue-dark);
+  font-weight: 600;
+}
+
+.btn-partner-contact-ceo {
+  background: var(--brand-blue);
+  color: var(--white);
+  border-color: var(--brand-blue);
+}
+
+.btn-partner-contact-ceo:hover {
+  background: var(--brand-blue-dark);
+  border-color: var(--brand-blue-dark);
+}
+
+
+.partner-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--mid-gray);
+  overflow: hidden;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.partner-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-md);
+}
+
+.partner-card-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 프로필 사진 영역 ── */
+.partner-photo-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, var(--brand-blue-soft), #ddeef9);
+  overflow: hidden;
+}
+
+.partner-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+  transition: transform 0.6s ease;
+}
+
+.partner-card:hover .partner-photo {
+  transform: scale(1.04);
+}
+
+/* 사진 없을 때 placeholder */
+.partner-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--brand-blue);
+  opacity: 0.35;
+}
+
+.partner-photo-placeholder i {
+  font-size: 5rem;
+}
+
+/* 파트너 번호 배지 */
+.partner-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+}
+
+.partner-num {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  background: rgba(0,95,173,0.85);
+  backdrop-filter: blur(6px);
+  color: var(--white);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border-radius: 50px;
+}
+
+/* ── 파트너 정보 ── */
+.partner-info {
+  padding: 1.75rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+}
+
+.partner-name-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--mid-gray);
+  padding-bottom: 1rem;
+}
+
+.partner-name {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--charcoal);
+}
+
+.partner-title {
+  font-size: 0.8rem;
+  color: var(--brand-blue);
+  font-weight: 500;
+  background: var(--brand-blue-soft);
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+}
+
+/* ── 상세 정보 (지역 / 분야) ── */
+.partner-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.partner-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.partner-detail-row dt {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--dark-gray);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.partner-detail-row dt i {
+  color: var(--brand-blue);
+  font-size: 0.75rem;
+}
+
+.partner-detail-row dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* 태그 */
+.partner-tag {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  background: var(--light-gray);
+  color: var(--charcoal);
+  font-size: 0.78rem;
+  font-weight: 500;
+  border-radius: 50px;
+  border: 1px solid var(--mid-gray);
+}
+
+.partner-tag-service {
+  background: var(--brand-blue-soft);
+  color: var(--brand-blue-dark);
+  border-color: rgba(0,145,234,0.2);
+}
+
+/* ── 소개 문구 ── */
+.partner-bio {
+  font-size: 0.93rem;
+  line-height: 1.85;
+  color: var(--dark-gray);
+  background: var(--off-white);
+  border-left: 3px solid var(--brand-blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.875rem 1.125rem;
+  flex: 1;
+}
+
+/* ── 카드 하단 버튼 ── */
+.partner-card-footer {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.btn-partner-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--white);
+  color: var(--brand-blue-dark);
+  border: 1.5px solid var(--brand-blue);
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition);
+}
+
+.btn-partner-contact:hover {
+  background: var(--brand-blue);
+  color: var(--white);
+}
+
+.btn-partner-contact i {
+  font-size: 0.85rem;
+}
+
+/* ══════════════════════════════════════
+   5. 파트너 모집 배너
+══════════════════════════════════════ */
+.partner-recruit-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 2rem 2.5rem;
+  background: linear-gradient(135deg, var(--brand-blue-dark), var(--brand-blue));
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+}
+
+.recruit-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  color: var(--white);
+}
+
+.recruit-banner-text i {
+  font-size: 2rem;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.recruit-banner-text strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.recruit-banner-text p {
+  font-size: 0.88rem;
+  opacity: 0.85;
+  margin: 0;
+}
+
+/* ══════════════════════════════════════
+   6. 반응형
+══════════════════════════════════════ */
+@media (max-width: 900px) {
+  .partners-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 대표 카드도 모바일에서 세로 레이아웃 */
+  .partner-card-ceo .partner-card-inner {
+    flex-direction: column;
+  }
+
+  .partner-card-ceo .partner-photo-wrap {
+    width: 100%;
+    min-width: unset;
+    min-height: unset;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+@media (max-width: 600px) {
+  .partners-hero {
+    padding: calc(var(--nav-h) + 2.5rem) 1.25rem 2.5rem;
+  }
+
+  .partner-info {
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+
+  .partner-recruit-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+  }
+
+  .partner-recruit-banner .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .partner-name-wrap {
+    flex-wrap: wrap;
+  }
+}

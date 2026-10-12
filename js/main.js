@@ -245,11 +245,22 @@ function initSmoothScroll() {
 ══════════════════════════════════════ */
 function initServiceCards() {
   document.querySelectorAll('.service-card').forEach(card => {
+    const url = card.dataset.url;
+    if (!url) return;
+
+    // 포인터 커서
+    card.style.cursor = 'pointer';
+
+    // 클릭 → 새 창으로 블로그 열기
+    card.addEventListener('click', () => {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    });
+
+    // 키보드 접근성 (Enter / Space)
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        // 예약 섹션으로 스크롤
-        document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+        window.open(url, '_blank', 'noopener,noreferrer');
       }
     });
   });
