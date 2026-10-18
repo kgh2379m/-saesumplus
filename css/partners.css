@@ -88,8 +88,19 @@
 .partner-card-ceo .partner-photo-wrap {
   width: 300px;
   min-width: 300px;
-  aspect-ratio: unset;
   min-height: 360px;
+  align-self: stretch;
+  padding: 0;
+  overflow: hidden;
+}
+
+.partner-card-ceo .partner-photo {
+  width: 100%;
+  height: 100%;
+  max-height: unset;
+  object-fit: cover;
+  object-position: center 10%;
+  border-radius: 0;
 }
 
 .partner-badge-ceo {
@@ -141,25 +152,32 @@
 }
 
 /* ── 프로필 사진 영역 ── */
+/* 어떤 비율의 이미지도 잘리지 않도록 contain 방식 적용 */
 .partner-photo-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
   background: linear-gradient(135deg, var(--brand-blue-soft), #ddeef9);
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .partner-photo {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 15%;
+  height: auto;
+  max-height: 380px;
+  object-fit: contain;
+  object-position: center top;
   display: block;
+  border-radius: var(--radius);
   transition: transform 0.6s ease;
 }
 
 .partner-card:hover .partner-photo {
-  transform: scale(1.04);
+  transform: scale(1.02);
 }
 
 /* 사진 없을 때 placeholder */
@@ -382,8 +400,18 @@
   .partner-card-ceo .partner-photo-wrap {
     width: 100%;
     min-width: unset;
-    min-height: unset;
-    aspect-ratio: 4 / 3;
+    min-height: 260px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .partner-card-ceo .partner-photo {
+    width: 100%;
+    height: 100%;
+    max-height: unset;
+    object-fit: cover;
+    object-position: center 10%;
+    border-radius: 0;
   }
 }
 
