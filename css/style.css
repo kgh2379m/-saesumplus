@@ -1348,6 +1348,70 @@ address { font-style: normal; }
   border-color: rgba(0,145,234,0.2);
 }
 
+/* ── 대표 답글 · 대표 로그인 ── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+.review-reply-wrap { margin-bottom: 1.25rem; }
+.review-reply-wrap:empty { display: none; }
+
+.review-reply {
+  background: #fff;
+  border-left: 3px solid var(--brand-blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.8rem 1rem;
+  box-shadow: inset 0 0 0 1px rgba(0,145,234,0.15);
+}
+.review-reply-head {
+  font-size: 0.8rem; font-weight: 700; color: var(--brand-blue-dark);
+  display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;
+}
+.review-reply-date { margin-left: auto; font-weight: 400; color: var(--dark-gray); font-size: 0.75rem; }
+.review-reply-text { font-size: 0.9rem; line-height: 1.7; color: var(--charcoal); font-style: normal; margin: 0; word-break: keep-all; }
+
+/* 대표 로그인 상태에서만 보이는 도구 */
+.review-owner-tools { display: none; margin-top: 0.6rem; }
+body.owner-mode .review-owner-tools { display: block; }
+
+.btn-reply-edit, .btn-reply-save, .btn-reply-delete, .btn-reply-cancel {
+  font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  padding: 0.4rem 0.9rem; border-radius: 50px; border: 1.5px solid var(--brand-blue);
+  background: #fff; color: var(--brand-blue-dark);
+}
+.btn-reply-save { background: var(--brand-blue); color: #fff; }
+.btn-reply-delete { border-color: #d9534f; color: #d9534f; }
+.btn-reply-cancel { border-color: var(--mid-gray); color: var(--dark-gray); }
+.btn-reply-edit:disabled, .btn-reply-save:disabled, .btn-reply-delete:disabled, .btn-reply-cancel:disabled { opacity: .5; cursor: default; }
+
+.review-reply-editor textarea {
+  width: 100%; box-sizing: border-box; padding: 0.7rem 0.85rem; font: inherit; font-size: 0.9rem;
+  line-height: 1.6; border: 1.5px solid var(--brand-blue); border-radius: var(--radius); resize: vertical;
+}
+.review-reply-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+.review-reply-msg { font-size: 0.78rem; color: var(--dark-gray); }
+
+.owner-login-area { margin: 2rem 0 0; text-align: center; }
+.owner-login-btn {
+  font: inherit; font-size: 0.78rem; cursor: pointer; padding: 0.35rem 0.9rem;
+  border-radius: 50px; border: 1px solid var(--mid-gray); background: transparent; color: var(--dark-gray);
+}
+.owner-login-btn:hover { border-color: var(--brand-blue); color: var(--brand-blue-dark); }
+body.owner-mode .owner-login-btn { border-color: var(--brand-blue); color: var(--brand-blue-dark); background: var(--brand-blue-soft); }
+.owner-login-form { display: inline-flex; gap: 0.4rem; margin-left: 0.5rem; vertical-align: middle; }
+.owner-login-form[hidden] { display: none; }
+.owner-login-form input {
+  width: 7.5rem; padding: 0.35rem 0.7rem; font: inherit; font-size: 0.9rem; text-align: center;
+  letter-spacing: 0.3em; border: 1.5px solid var(--mid-gray); border-radius: 50px;
+}
+.owner-login-form button {
+  font: inherit; font-size: 0.8rem; cursor: pointer; padding: 0.35rem 0.9rem; border-radius: 50px;
+  border: 0; background: var(--brand-blue); color: #fff;
+}
+.owner-login-msg { min-height: 1.2em; margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--brand-blue-dark); }
+.owner-login-msg.is-error { color: #d9534f; }
+
 /* 카드가 많을 때 2열 그리드 */
 #reviews-dynamic-grid {
   grid-template-columns: repeat(2, 1fr);

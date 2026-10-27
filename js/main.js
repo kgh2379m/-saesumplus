@@ -550,7 +550,38 @@ function escapeHtml(str) {
     .replace(/"/g,'&quot;');
 }
 
+/* ── 대표 답글 데이터 (reviewId → {reviewId, text, time}) ── */
+let reviewComments = {};
+let ownerPw = null; // 대표 인증 비밀번호 (메모리에만 보관, 새로고침하면 사라짐)
+
+function replyInnerHTML(rid) {
+  const c   = reviewComments[rid];
+  const has = !!(c && c.text);
+  let html  = '';
+  if (has) {
+    const d = formatDate(c.time);
+    html += `
+      <div class="review-reply">
+        <div class="review-reply-head">
+          <i class="fa fa-reply" aria-hidden="true"></i> 새숨더함 대표 답글
+          ${d ? `<span class="review-reply-date">${d}</span>` : ''}
+        </div>
+        <p class="review-reply-text">${escapeHtml(c.text).replace(/\n/g, '<br>')}</p>
+      </div>`;
+  }
+  if (rid) {
+    html += `
+      <div class="review-owner-tools">
+        <button type="button" class="btn-reply-edit">
+          <i class="fa fa-pen" aria-hidden="true"></i> ${has ? '답글 수정' : '답글 쓰기'}
+        </button>
+      </div>`;
+  }
+  return html;
+}
+
 function renderReviewCard(row, isFeatured) {
+  const rawId        = String(row[COL_TIME] || '');
   const star        = escapeHtml(row[COL_STAR]    || '5');
   const text        = escapeHtml(row[COL_TEXT]    || '');
   const authorFull  = escapeHtml(row[COL_AUTHOR]  || '익명 고객님');
@@ -561,9 +592,10 @@ function renderReviewCard(row, isFeatured) {
   const starLabel   = `별점 ${star}점`;
 
   return `
-    <blockquote class="review-card review-card-dynamic${featuredClass}">
+    <blockquote class="review-card review-card-dynamic${featuredClass}" data-rid="${escapeHtml(rawId)}">
       <div class="review-stars" aria-label="${starLabel}">${starHTML(star)}</div>
       <p class="review-text">"${text}"</p>
+      <div class="review-reply-wrap">${replyInnerHTML(rawId)}</div>
       <footer class="review-meta">
         <span class="reviewer-avatar" aria-hidden="true">${avatar}</span>
         <div>
@@ -592,6 +624,12 @@ async function loadGsheetReviews() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const rows = (data.reviews || []).filter(r => r[COL_TEXT] && r[COL_TEXT].trim());
+
+    // 대표 답글 (Apps Script가 comments를 내려주는 경우에만)
+    reviewComments = {};
+    (data.comments || []).forEach(c => {
+      if (c && c.reviewId) reviewComments[String(c.reviewId)] = c;
+    });
 
     if (loading) loading.style.display = 'none';
 
@@ -695,3 +733,166 @@ function initGformLazyLoad() {
 
   observer.observe(wrap);
 }
+
+/* ══════════════════════════════════════
+   17. 대표 전용 답글 기능 (4자리 비밀번호)
+   — 비밀번호 검증과 답글 저장은 Apps Script(서버)에서 처리
+   — 화면에서는 '대표 로그인' 후에만 답글 도구가 보임
+══════════════════════════════════════ */
+const OWNER_SS_KEY = 'saesumOwnerPw';
+
+async function callReviewsApi(payload) {
+  // text/plain 으로 보내야 CORS 사전요청(preflight) 없이 Apps Script가 받을 수 있음
+  const res = await fetch(REVIEWS_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+function initOwnerTools() {
+  const grid      = document.getElementById('reviews-dynamic-grid');
+  const loginBtn  = document.getElementById('owner-login-btn');
+  const form      = document.getElementById('owner-login-form');
+  const input     = document.getElementById('owner-pin');
+  const msgEl     = document.getElementById('owner-login-msg');
+  if (!grid || !loginBtn || !form || !input) return;
+
+  const setMsg = (t, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = t || '';
+    msgEl.classList.toggle('is-error', !!isErr);
+  };
+
+  function setOwnerMode(on) {
+    document.body.classList.toggle('owner-mode', on);
+    loginBtn.innerHTML = on
+      ? '<i class="fa fa-lock-open" aria-hidden="true"></i> 대표 로그아웃'
+      : '<i class="fa fa-lock" aria-hidden="true"></i> 대표 로그인';
+    loginBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (!on) {
+      ownerPw = null;
+      sessionStorage.removeItem(OWNER_SS_KEY);
+    }
+  }
+
+  // 같은 탭에서 새로고침해도 유지 (탭을 닫으면 자동 해제)
+  const saved = sessionStorage.getItem(OWNER_SS_KEY);
+  if (saved) { ownerPw = saved; setOwnerMode(true); }
+
+  loginBtn.addEventListener('click', () => {
+    if (ownerPw) {
+      setOwnerMode(false);
+      setMsg('로그아웃 되었습니다.');
+      return;
+    }
+    form.hidden = !form.hidden;
+    if (!form.hidden) { input.value = ''; input.focus(); }
+    setMsg('');
+  });
+
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/\D/g, '').slice(0, 4);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pw = input.value.trim();
+    if (!/^\d{4}$/.test(pw)) { setMsg('숫자 4자리를 입력해 주세요.', true); return; }
+
+    setMsg('확인 중…');
+    try {
+      const r = await callReviewsApi({ action: 'verify', pw });
+      if (r.ok) {
+        ownerPw = pw;
+        sessionStorage.setItem(OWNER_SS_KEY, pw);
+        setOwnerMode(true);
+        form.hidden = true;
+        setMsg('대표 모드로 전환되었습니다. 각 후기 카드의 [답글 쓰기]를 눌러 주세요.');
+      } else if (r.error === 'locked') {
+        setMsg('비밀번호를 여러 번 틀려 10분간 잠겼습니다.', true);
+      } else {
+        setMsg('비밀번호가 맞지 않습니다.', true);
+      }
+    } catch (err) {
+      setMsg('서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.', true);
+    }
+  });
+
+  /* ── 카드 안의 답글 작성/수정/삭제 (이벤트 위임) ── */
+  const refreshReply = (card, rid) => {
+    const wrap = card.querySelector('.review-reply-wrap');
+    if (wrap) wrap.innerHTML = replyInnerHTML(rid);
+  };
+
+  grid.addEventListener('click', async (e) => {
+    const card = e.target.closest('.review-card-dynamic');
+    if (!card) return;
+    const rid  = card.dataset.rid;
+    const wrap = card.querySelector('.review-reply-wrap');
+
+    // 1) 편집창 열기
+    if (e.target.closest('.btn-reply-edit')) {
+      if (!ownerPw) return;
+      const cur  = (reviewComments[rid] && reviewComments[rid].text) || '';
+      const has  = !!cur;
+      wrap.innerHTML = `
+        <div class="review-reply-editor">
+          <textarea rows="3" maxlength="500" placeholder="고객님께 남길 답글을 입력해 주세요. (최대 500자)">${escapeHtml(cur)}</textarea>
+          <div class="review-reply-actions">
+            <button type="button" class="btn-reply-save">등록</button>
+            ${has ? '<button type="button" class="btn-reply-delete">삭제</button>' : ''}
+            <button type="button" class="btn-reply-cancel">취소</button>
+            <span class="review-reply-msg" aria-live="polite"></span>
+          </div>
+        </div>`;
+      wrap.querySelector('textarea').focus();
+      return;
+    }
+
+    // 2) 취소
+    if (e.target.closest('.btn-reply-cancel')) {
+      refreshReply(card, rid);
+      return;
+    }
+
+    // 3) 등록 / 삭제
+    const isSave = e.target.closest('.btn-reply-save');
+    const isDel  = e.target.closest('.btn-reply-delete');
+    if (!isSave && !isDel) return;
+
+    const msg = wrap.querySelector('.review-reply-msg');
+    const ta  = wrap.querySelector('textarea');
+    const text = isDel ? '' : ta.value.trim();
+
+    if (isSave && !text) { msg.textContent = '답글 내용을 입력해 주세요.'; return; }
+    if (isDel && !confirm('이 답글을 삭제할까요?')) return;
+
+    wrap.querySelectorAll('button').forEach(b => b.disabled = true);
+    msg.textContent = '저장 중…';
+
+    try {
+      const r = await callReviewsApi({ action: 'reply', reviewId: rid, text, pw: ownerPw });
+      if (r.ok) {
+        if (r.deleted || !r.comment) delete reviewComments[rid];
+        else reviewComments[rid] = r.comment;
+        refreshReply(card, rid);
+      } else if (r.error === 'auth' || r.error === 'locked') {
+        setOwnerMode(false);
+        refreshReply(card, rid);
+        setMsg('인증이 만료되었거나 잠겼습니다. 다시 로그인해 주세요.', true);
+        form.hidden = false;
+      } else {
+        wrap.querySelectorAll('button').forEach(b => b.disabled = false);
+        msg.textContent = '저장 실패: ' + (r.error || '알 수 없는 오류');
+      }
+    } catch (err) {
+      wrap.querySelectorAll('button').forEach(b => b.disabled = false);
+      msg.textContent = '서버 연결에 실패했습니다.';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initOwnerTools);
