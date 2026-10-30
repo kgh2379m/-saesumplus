@@ -1348,6 +1348,53 @@ address { font-style: normal; }
   border-color: rgba(0,145,234,0.2);
 }
 
+/* ── 후기 섹션 상단 '후기 작성하기' 버튼 ── */
+.btn-review-write-top {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.95rem 2.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: 50px;
+  box-shadow: 0 6px 18px rgba(0,145,234,0.28);
+}
+@media (max-width: 600px) {
+  .btn-review-write-top { width: 100%; max-width: 360px; }
+}
+
+/* ── 후기 제출 직후 안내 · 수동 새로고침 ── */
+.review-submit-notice {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem;
+  margin: 0 0 1rem; padding: 0.85rem 1.1rem;
+  background: #e8f7ee; border: 1px solid #9fd8b4; border-radius: var(--radius);
+  color: #1d6b3a; font-size: 0.92rem; font-weight: 600;
+  animation: reviewFadeIn 0.4s ease both;
+}
+.review-submit-notice[hidden] { display: none; }
+.review-submit-notice i { font-size: 1.1rem; }
+.review-submit-notice button {
+  margin-left: auto; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  padding: 0.4rem 1rem; border-radius: 50px; border: 0; background: #1d6b3a; color: #fff;
+}
+
+.reviews-refresh-wrap { text-align: right; margin: -0.5rem 0 1rem; }
+.reviews-refresh-btn {
+  font: inherit; font-size: 0.8rem; cursor: pointer; padding: 0.3rem 0.8rem;
+  border-radius: 50px; border: 1px solid var(--mid-gray); background: #fff; color: var(--dark-gray);
+}
+.reviews-refresh-btn:hover { border-color: var(--brand-blue); color: var(--brand-blue-dark); }
+.reviews-refresh-btn:disabled { opacity: .6; cursor: default; }
+
+/* 방금 등록된 후기 강조 */
+.review-card-new { animation: reviewNewGlow 3.5s ease; }
+@keyframes reviewNewGlow {
+  0%, 60% { box-shadow: 0 0 0 3px rgba(0,145,234,0.55), var(--shadow-md); }
+  100%    { box-shadow: var(--shadow-sm); }
+}
+
 /* ── 대표 답글 · 대표 로그인 ── */
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

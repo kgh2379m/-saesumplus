@@ -118,6 +118,18 @@ function testNotify() {
   onFormSubmit({ namedValues: { '소감': ['알림 테스트입니다.'], '성함': ['테스트'] } });
 }
 
+/**
+ * 메일 권한 승인용: 이 함수를 ▶ 실행하면 메일 발송 권한 창이 뜹니다.
+ * (오류를 숨기지 않고 그대로 보여주며, 성공하면 테스트 메일이 바로 발송됩니다)
+ */
+function authorizeMail() {
+  MailApp.sendEmail(
+    CONFIG.NOTIFY_EMAIL,
+    '[새숨더함] 새 고객 후기가 등록되었습니다 (권한 테스트)',
+    '이 메일이 보이면 메일 발송 권한이 정상 승인된 것입니다.'
+  );
+}
+
 /* ───────────── 내부 함수 ───────────── */
 function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))

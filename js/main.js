@@ -611,7 +611,8 @@ const REVIEWS_PAGE_SIZE = 6; // 한 번에 보여줄 최대 후기 수
 let allReviewRows = [];      // 전체 후기 보관
 let shownCount = 0;          // 현재 표시된 후기 수
 
-async function loadGsheetReviews() {
+async function loadGsheetReviews(opts) {
+  const silent   = !!(opts && opts.silent); // true: 자동/수동 새로고침 (오류 시 화면을 건드리지 않음)
   const loading  = document.getElementById('reviews-loading');
   const grid     = document.getElementById('reviews-dynamic-grid');
   const fallback = document.getElementById('reviews-fallback');
@@ -620,7 +621,8 @@ async function loadGsheetReviews() {
   if (!grid) return;
 
   try {
-    const res  = await fetch(REVIEWS_API);
+    // ?t= : 브라우저/중간 캐시가 예전 목록을 돌려주지 않도록 매번 다른 주소로 요청
+    const res  = await fetch(REVIEWS_API + '?t=' + Date.now());
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const rows = (data.reviews || []).filter(r => r[COL_TEXT] && r[COL_TEXT].trim());
@@ -634,10 +636,11 @@ async function loadGsheetReviews() {
     if (loading) loading.style.display = 'none';
 
     if (rows.length === 0) {
-      // 후기 없으면 fallback 표시
-      if (fallback) fallback.style.display = '';
+      // 후기 없으면 fallback 표시 (새로고침 중이면 화면 유지)
+      if (!silent && fallback) fallback.style.display = '';
       return;
     }
+    if (fallback) fallback.style.display = 'none';
 
     // 최신순 정렬, 전체 보관
     allReviewRows = rows
@@ -659,7 +662,8 @@ async function loadGsheetReviews() {
     }
 
   } catch (err) {
-    console.warn('[Reviews] API 오류, fallback 표시:', err.message);
+    console.warn('[Reviews] API 오류:', err.message);
+    if (silent) return; // 새로고침 실패 시 기존에 보이던 후기는 그대로 둠
     if (loading)  loading.style.display  = 'none';
     if (fallback) fallback.style.display = '';
   }
@@ -694,7 +698,69 @@ function initReviewMoreBtn() {
 
 document.addEventListener('DOMContentLoaded', initReviewMoreBtn);
 
-document.addEventListener('DOMContentLoaded', loadGsheetReviews);
+document.addEventListener('DOMContentLoaded', () => loadGsheetReviews());
+
+/* ── 후기 제출 직후 자동 반영 + 수동 새로고침 ── */
+let reviewPollTimer = null;
+
+function scrollToReviewGrid() {
+  const grid = document.getElementById('reviews-dynamic-grid');
+  if (!grid) return;
+  const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h') || '72', 10);
+  const top  = grid.getBoundingClientRect().top + window.scrollY - navH - 20;
+  window.scrollTo({ top, behavior: 'smooth' });
+  const first = grid.querySelector('.review-card-dynamic');
+  if (first) {
+    first.classList.add('review-card-new');
+    setTimeout(() => first.classList.remove('review-card-new'), 3500);
+  }
+}
+
+function showSubmitNotice() {
+  const notice = document.getElementById('review-submit-notice');
+  if (notice) notice.hidden = false;
+}
+
+// 구글 폼 제출 감지 시 호출: 시트 반영이 늦을 수 있어 몇 번 나눠서 확인
+function handleReviewSubmitted() {
+  const before = allReviewRows.length;
+  const delays = [1500, 4000, 8000, 14000];
+  let i = 0;
+  clearTimeout(reviewPollTimer);
+
+  const tryOnce = async () => {
+    await loadGsheetReviews({ silent: true });
+    if (allReviewRows.length > before) { showSubmitNotice(); return; }
+    i += 1;
+    if (i < delays.length) reviewPollTimer = setTimeout(tryOnce, delays[i]);
+  };
+  reviewPollTimer = setTimeout(tryOnce, delays[0]);
+}
+
+function initReviewRefresh() {
+  const refreshBtn = document.getElementById('reviews-refresh-btn');
+  const gotoBtn    = document.getElementById('review-submit-goto');
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      const orig = refreshBtn.innerHTML;
+      refreshBtn.disabled = true;
+      refreshBtn.innerHTML = '<i class="fa fa-rotate fa-spin" aria-hidden="true"></i> 불러오는 중…';
+      await loadGsheetReviews({ silent: true });
+      refreshBtn.innerHTML = orig;
+      refreshBtn.disabled = false;
+    });
+  }
+  if (gotoBtn) {
+    gotoBtn.addEventListener('click', () => {
+      const notice = document.getElementById('review-submit-notice');
+      if (notice) notice.hidden = true;
+      scrollToReviewGrid();
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initReviewRefresh);
 
 /* ══════════════════════════════════════
    16. 구글 폼 iframe 지연 로드
@@ -713,6 +779,14 @@ function initGformLazyLoad() {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
       observer.unobserve(wrap);
+
+      // 폼 제출 감지: 제출하면 iframe이 '응답 기록됨' 페이지로 이동하며 load가 다시 발생
+      // (cross-origin이라 내용은 못 읽지만, 두 번째 load = 제출/이동으로 판단)
+      let gformLoads = 0;
+      iframe.addEventListener('load', () => {
+        gformLoads += 1;
+        if (gformLoads >= 2) handleReviewSubmitted();
+      });
 
       // src 주입
       iframe.src = dataSrc;
